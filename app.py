@@ -1,6 +1,7 @@
-"""Mood to Portrait — Gradio app.
+"""Metaphoric Oracle — Gradio app.
 
-User answers 5 poetic questions → Python builds a FLUX prompt → portrait is generated.
+User answers 5 tarot-inspired questions → LLM generates wise life advice →
+FLUX generates a metaphoric card image visualizing that advice.
 HF_TOKEN must be set as an environment variable (or Space secret).
 """
 
@@ -10,91 +11,137 @@ from huggingface_hub import InferenceClient
 from prompt_builder import build_prompt
 
 HF_TOKEN = os.environ.get("HF_TOKEN")
-MODEL = "black-forest-labs/FLUX.1-schnell"
+IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
+TEXT_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 
-TITLE = "🔮 MOOD TO PORTRAIT 🔮"
+TITLE = "✨ METAPHORIC ORACLE ✨"
 DESCRIPTION = """
-*Answer five questions about your inner state. Python will translate your mood into a FLUX image prompt and paint your portrait.*
+*Answer five questions. Receive a personal reading — wise life guidance and a metaphoric card painted just for you.*
 
-Built by [yenka.dev] (https://yenka.dev)
+Built by [yenka.dev](https://yenka.dev)
 """
 
-WEATHER_OPTIONS = ["Stormy", "Foggy", "Sunny", "Rainy", "Blizzard"]
-ANIMAL_OPTIONS = ["Wolf", "Cat", "Deer", "Raven", "Fox", "Owl"]
-COLOR_OPTIONS = ["Deep blue", "Crimson", "Violet", "Gold", "Silver", "Forest green"]
-ELEMENT_OPTIONS = ["Fire", "Water", "Earth", "Air", "Void"]
-LANDSCAPE_OPTIONS = ["Ocean", "Forest", "Desert", "City", "Mountain", "Cave"]
+SPHERE_OPTIONS = [
+    "Love & Relationships",
+    "Career & Purpose",
+    "Inner Growth",
+    "Health & Body",
+    "Finances & Abundance",
+    "Spirituality & Soul",
+]
+ENERGY_OPTIONS = ["Confusion", "Stagnation", "Transformation", "Hope", "Fear", "Restlessness"]
+NEED_OPTIONS = ["Clarity", "Courage", "Acceptance", "Direction", "Healing", "Perspective"]
+SYMBOL_OPTIONS = ["The Moon", "The Mirror", "A Key", "Flowing Water", "A Flame", "Ancient Roots"]
+TRUTH_OPTIONS = [
+    "I need to let go of something",
+    "I need to take action",
+    "I'm harder on myself than I should be",
+    "I already know the answer",
+    "I need to ask for help",
+    "I need to rest",
+]
+
+SYSTEM_PROMPT = """You are a wise, warm life advisor who speaks in metaphoric, poetic language.
+Your role is to give empowering, actionable life guidance based on the person's answers.
+Never predict the future as good or bad. Never use fortune-telling language.
+Give 4-5 sentences of empowering advice grounded specifically in their answers.
+End with one short, powerful guiding sentence on its own line.
+Be specific to the answers, not generic."""
 
 
-def generate_portrait(weather, animal, color, element, landscape):
-    if not all([weather, animal, color, element, landscape]):
+def generate_reading(sphere, energy, need, symbol, truth):
+    if not all([sphere, energy, need, symbol, truth]):
         return None, "Please answer all five questions."
 
-    prompt = build_prompt(weather, animal, color, element, landscape)
+    user_message = (
+        f"My reading:\n"
+        f"- Area calling for attention: {sphere}\n"
+        f"- Energy I'm moving through: {energy}\n"
+        f"- What I most need: {need}\n"
+        f"- Symbol that speaks to me: {symbol}\n"
+        f"- Honest truth I've been avoiding: {truth}\n\n"
+        f"Please give me your wise guidance."
+    )
+
+    image_prompt = build_prompt(sphere, energy, need, symbol, truth)
 
     if not HF_TOKEN:
-        return None, f"⚠️ HF_TOKEN not set. Your portrait prompt would be:\n\n`{prompt}`"
+        preview = (
+            f"⚠️ HF_TOKEN not set.\n\n"
+            f"**Image prompt would be:**\n`{image_prompt}`\n\n"
+            f"**LLM would receive:**\n{user_message}"
+        )
+        return None, preview
 
     try:
-        client = InferenceClient(model=MODEL, token=HF_TOKEN)
-        image = client.text_to_image(prompt)
-        return image, f"**Assembled prompt:**\n\n`{prompt}`"
+        client = InferenceClient(token=HF_TOKEN)
+
+        response = client.chat_completion(
+            model=TEXT_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            max_tokens=300,
+        )
+        advice_text = response.choices[0].message.content.strip()
+
+        image = client.text_to_image(image_prompt, model=IMAGE_MODEL)
+
+        return image, advice_text
+
     except Exception as e:
-        return None, f"Generation failed: {e}\n\n**Prompt was:**\n`{prompt}`"
+        return None, f"Generation failed: {e}\n\n**Image prompt was:**\n`{image_prompt}`"
 
 
-with gr.Blocks(theme=gr.themes.Default(primary_hue="purple", neutral_hue="gray"), title=TITLE) as demo:
+with gr.Blocks(title=TITLE) as demo:
     gr.Markdown(f"# {TITLE}")
     gr.Markdown(DESCRIPTION)
 
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown("### 🔮 Tell me about your mood")
+            gr.Markdown("### Your reading")
 
-            weather = gr.Dropdown(
-                choices=WEATHER_OPTIONS,
-                label="If your mood were weather right now, it would be...",
-                info="Choose what resonates most",
+            sphere = gr.Dropdown(
+                choices=SPHERE_OPTIONS,
+                label="Which area of your life is calling for attention?",
             )
-            animal = gr.Dropdown(
-                choices=ANIMAL_OPTIONS,
-                label="What animal matches your energy today?",
-                info="Think about how you move through the world right now",
+            energy = gr.Dropdown(
+                choices=ENERGY_OPTIONS,
+                label="What energy are you moving through right now?",
             )
-            color = gr.Dropdown(
-                choices=COLOR_OPTIONS,
-                label="A color that speaks to you in this moment",
-                info="Go with your gut",
+            need = gr.Dropdown(
+                choices=NEED_OPTIONS,
+                label="What do you most need right now?",
             )
-            element = gr.Dropdown(
-                choices=ELEMENT_OPTIONS,
-                label="Which element calls to you?",
-                info="What forces feel alive in you",
+            symbol = gr.Dropdown(
+                choices=SYMBOL_OPTIONS,
+                label="Which symbol speaks to you today?",
             )
-            landscape = gr.Dropdown(
-                choices=LANDSCAPE_OPTIONS,
-                label="Your inner landscape right now is...",
-                info="Where does your mind wander",
+            truth = gr.Dropdown(
+                choices=TRUTH_OPTIONS,
+                label="What is the honest truth you've been avoiding?",
             )
 
-            btn = gr.Button("🔮 Paint my portrait", variant="primary", size="lg")
+            btn = gr.Button("✨ Reveal my oracle", variant="primary", size="lg")
 
         with gr.Column(scale=1):
-            gr.Markdown("### 🔮 Your portrait")
-            output_image = gr.Image(label="Generated portrait", show_label=False)
-            output_prompt = gr.Markdown()
+            gr.Markdown("### Your card")
+            output_image = gr.Image(label="Metaphoric card", show_label=False)
+            gr.Markdown("### Your guidance")
+            output_text = gr.Markdown()
 
     btn.click(
-        fn=generate_portrait,
-        inputs=[weather, animal, color, element, landscape],
-        outputs=[output_image, output_prompt],
+        fn=generate_reading,
+        inputs=[sphere, energy, need, symbol, truth],
+        outputs=[output_image, output_text],
         api_name=False,
     )
 
     gr.Markdown(
-        "---\n*Powered by FLUX.1-schnell via HuggingFace Inference API · "
-        "Prompts by [yenka.dev](https://yenka.dev)*"
+        "---\n*Powered by FLUX.1-schnell + Llama-3.1-8B via HuggingFace Inference API · "
+        "Built by [yenka.dev](https://yenka.dev)*"
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(theme=gr.themes.Default(primary_hue="purple", neutral_hue="slate"))

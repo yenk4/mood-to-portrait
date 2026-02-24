@@ -1,6 +1,6 @@
 ---
-title: Mood To Portrait
-emoji: 🔮
+title: Metaphoric Oracle
+emoji: ✨
 colorFrom: purple
 colorTo: pink
 sdk: gradio
@@ -10,41 +10,49 @@ app_file: app.py
 pinned: false
 ---
 
-# 🔮 Mood to Portrait
+# ✨ Metaphoric Oracle
 
-**Answer 5 poetic questions → Python builds a FLUX prompt → your portrait is generated.**
+**Answer 5 tarot-inspired questions → LLM generates wise life advice → FLUX paints your metaphoric card.**
 
-A small creative demo showing prompt engineering + HuggingFace Inference API integration.
+A creative demo combining LLM text generation + image generation with HuggingFace Inference API.
 
 ## How it works
 
-1. You answer 5 questions about your current mood (weather, animal, color, element, inner landscape)
-2. `prompt_builder.py` maps each answer to descriptive visual art terms
-3. The assembled prompt goes to **FLUX.1-schnell** via HuggingFace Inference API
-4. Your portrait appears
+1. You answer 5 questions about your inner state (area of life, current energy, what you need, a symbol, an honest truth)
+2. `prompt_builder.py` maps answers to visual imagery for a metaphoric card
+3. **Llama-3.1-8B-Instruct** generates 4–5 sentences of wise, empowering life advice grounded in your answers
+4. **FLUX.1-schnell** generates a tarot-style card illustration
+5. Both appear together as your personal reading
 
-**Example assembled prompt:**
+The oracle never predicts the future as good or bad — only empowering, actionable guidance.
+
+**Example image prompt:**
 ```
-a dramatic fantasy portrait, mysterious graceful cat energy, ethereal misty atmosphere,
-purple violet haze palette, lush dense forest background, fluid flowing water energy,
-cinematic lighting, painterly style, high detail, fantasy art
+a mystical metaphoric card illustration, art nouveau style,
+a blooming lotus rising from dark water, a chrysalis cracking open with golden light,
+a lone flame burning in the dark, a full silver moon casting mystical shadows,
+chains dissolving into luminous dust,
+intricate ornate border with golden filigree and esoteric symbols,
+jewel tones — purple violet teal gold, ethereal atmosphere,
+highly detailed spiritual illustration, tarot card format, masterpiece
 ```
 
 ## Tech stack
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![Gradio](https://img.shields.io/badge/Gradio-UI-orange)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-FLUX.1--schnell-yellow)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-FLUX%20%2B%20Llama-yellow)
 
 - **UI**: Gradio
-- **Model**: FLUX.1-schnell (via HF Inference API free tier)
+- **Image model**: FLUX.1-schnell (via HF Inference API)
+- **Text model**: Llama-3.1-8B-Instruct (via HF Inference API)
 - **Hosting**: HuggingFace Spaces (free)
 - **Auth**: `HF_TOKEN` environment variable / Space secret
 
 ## Run locally
 
 ```bash
-uv run app.py
+uv run python app.py
 ```
 
 Or with plain Python:
@@ -58,8 +66,8 @@ HF_TOKEN=your_token python app.py
 
 ```
 mood-to-portrait/
-├── app.py             # Gradio UI + inference call
-├── prompt_builder.py  # Maps answers → FLUX prompt
+├── app.py             # Gradio UI + inference calls (LLM + image)
+├── prompt_builder.py  # Maps oracle answers → FLUX prompt
 ├── requirements.txt   # gradio, huggingface_hub, Pillow
 └── README.md
 ```
