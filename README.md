@@ -14,6 +14,8 @@ pinned: false
 
 **Answer 5 tarot-inspired questions → LLM generates wise life advice → FLUX paints your metaphoric card.**
 
+▶️ [**Try it live on HuggingFace Spaces**](https://huggingface.co/spaces/yenk4/metaphoric-oracle)
+
 A creative demo combining LLM text generation + image generation with HuggingFace Inference API.
 
 ## How it works
