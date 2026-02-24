@@ -1,6 +1,6 @@
 ---
 title: Mood To Portrait
-emoji: ✦
+emoji: 🔮
 colorFrom: purple
 colorTo: pink
 sdk: gradio
@@ -9,7 +9,7 @@ app_file: app.py
 pinned: false
 ---
 
-# ✦ Mood to Portrait
+# 🔮 Mood to Portrait
 
 **Answer 5 poetic questions → Python builds a FLUX prompt → your portrait is generated.**
 

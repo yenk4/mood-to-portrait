@@ -12,7 +12,7 @@ from prompt_builder import build_prompt
 HF_TOKEN = os.environ.get("HF_TOKEN")
 MODEL = "black-forest-labs/FLUX.1-schnell"
 
-TITLE = "✦ MOOD TO PORTRAIT ✦"
+TITLE = "🔮 MOOD TO PORTRAIT 🔮"
 DESCRIPTION = """
 *Answer five questions about your inner state. Python will translate your mood into a FLUX image prompt and paint your portrait.*
 
@@ -49,7 +49,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="purple", neutral_hue="gray")
 
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown("### ✦ Tell me about your mood")
+            gr.Markdown("### 🔮 Tell me about your mood")
 
             weather = gr.Dropdown(
                 choices=WEATHER_OPTIONS,
@@ -77,10 +77,10 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="purple", neutral_hue="gray")
                 info="Where does your mind wander",
             )
 
-            btn = gr.Button("✦ Paint my portrait", variant="primary", size="lg")
+            btn = gr.Button("🔮 Paint my portrait", variant="primary", size="lg")
 
         with gr.Column(scale=1):
-            gr.Markdown("### ✦ Your portrait")
+            gr.Markdown("### 🔮 Your portrait")
             output_image = gr.Image(label="Generated portrait", show_label=False)
             output_prompt = gr.Markdown()
 
